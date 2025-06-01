@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta
+      name="description"
+      content="AGENT-13: Chatbot AI gaul, gokil, dan siap jadi teman curhat digital kamu!"
+    />
+    <title>AGENT-13</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="chatbot.css" />
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+    />
+  </head>
+  <body>
+    <canvas id="pixelBg"></canvas>
+    <main class="chat-container" role="main" aria-label="Chatbot container">
+      <header class="chat-header" role="banner">
+        <div class="api-status" aria-live="polite">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Ready</span>
+        </div>
+        <div class="pixel-glitch">AGENT-13</div>
+        <p>Real-time Ai<br /><span style="font-size: 9px">:Harbangan</span></p>
+        <div id="chatInfo" class="chat-info">Chat #1 | 0 pesan</div>
+        <button
+          id="themeToggle"
+          class="icon-btn theme-btn"
+          aria-label="Toggle Theme"
+          title="Ganti tema"
+        >
+          🌓
+        </button>
+        <button
+          id="fontSizeBtn"
+          class="icon-btn"
+          aria-label="Ubah ukuran font"
+          title="Ubah ukuran font"
+          style="margin-left: 5px"
+        >
+          🔠
+        </button>
+        <button
+          id="profileBtn"
+          class="icon-btn"
+          aria-label="Profil User"
+          title="Profil User"
+          style="margin-left: 5px"
+        >
+          👤
+        </button>
+        <button
+          id="exportBtn"
+          class="icon-btn"
+          aria-label="Export Chat"
+          title="Export Chat"
+          style="margin-left: 5px"
+        >
+          ⬇️
+        </button>
+        <button
+          id="historyBtn"
+          class="icon-btn"
+          aria-label="Riwayat Chat"
+          title="Riwayat Chat"
+          style="margin-left: 5px"
+        >
+          🕑
+        </button>
+      </header>
+      <section
+        class="chat-messages"
+        id="chatMessages"
+        aria-label="Chat Messages"
+      >
+        <div class="welcome-message">
+          💬 WELCOME! Masukkan API key OpenRouter Anda, lalu mulai
+          percakapan.<br />
+          <span style="color: var(--pixel-accent); font-size: 10px">
+            Tips: Untuk pertanyaan seperti “Buatkan list”, “Langkah-langkah”,
+            “Rekomendasi”, AI akan menjawab dalam bentuk daftar agar mudah
+            dibaca.
+          </span>
+        </div>
+      </section>
+      <section class="chat-input-container" aria-label="Input Area">
+        <form id="apiKeyForm" class="api-key-section" autocomplete="off">
+          <label for="apiKeyInput">🔑 OpenRouter API Key:</label>
+          <div class="api-key-input">
+            <input
+              type="password"
+              id="apiKeyInput"
+              placeholder="sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx"
+              autocomplete="off"
+              aria-label="API Key"
+            />
+            <button
+              class="btn-small btn-primary"
+              type="submit"
+              id="setKeyBtn"
+              aria-label="Set API Key"
+            >
+              Set Key
+            </button>
+            <button
+              class="btn-small btn-secondary"
+              type="button"
+              id="clearKeyBtn"
+              style="display: none"
+              aria-label="Clear API Key"
+            >
+              Clear
+            </button>
+          </div>
+          <div class="api-help" id="chatHelp">
+            Dapatkan API key gratis, disini
+            <a
+              href="https://openrouter.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >OpenRouter.ai</a
+            >
+          </div>
+          <div class="contact-link-section">
+            <a
+              href="https://linktr.ee/xrp.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              id="contactLink"
+              >Contact</a
+            >
+          </div>
+        </form>
+        <div class="input-group">
+          <label for="userInput" class="sr-only">Pesan:</label>
+          <textarea
+            id="userInput"
+            placeholder="Ketik pesan Anda..."
+            disabled
+            rows="1"
+            aria-describedby="chatHelp"
+          ></textarea>
+          <button id="sendBtn" type="button" disabled aria-label="Kirim Pesan">
+            Kirim
+          </button>
+          <!-- Fitur baru: Voice input button akan diinject lewat JS (🎤) -->
+          <input type="file" id="fileInput" style="display: none" multiple />
+          <button
+            class="btn-small btn-secondary"
+            type="button"
+            id="attachBtn"
+            title="Attach file"
+            aria-label="Attach file"
+          >
+            📎
+          </button>
+          <span id="filePreview" class="file-preview" aria-live="polite"></span>
+        </div>
+        <div class="input-controls">
+          <button
+            class="icon-btn"
+            type="button"
+            id="newChatBtn"
+            aria-label="Chat Baru"
+            title="Mulai chat baru (reset context)"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              style="display: block"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.5 10A6.5 6.5 0 0116 7.5M16 7.5V4M16 7.5h-3.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="square"
+                stroke-linejoin="miter"
+              />
+              <path
+                d="M16.5 10A6.5 6.5 0 014 12.5M4 12.5V16M4 12.5h3.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="square"
+                stroke-linejoin="miter"
+              />
+            </svg>
+          </button>
+          <button
+            class="icon-btn"
+            type="button"
+            id="clearMsgBtn"
+            aria-label="Hapus semua pesan"
+            title="Hapus semua pesan"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              style="display: block"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 7.5v6m4-6v6m4-10v2M2 5.5h16"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="square"
+              />
+              <rect
+                x="4"
+                y="5.5"
+                width="12"
+                height="11"
+                rx="0"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+          <button
+            id="reportBtn"
+            class="btn-small btn-secondary"
+            type="button"
+            style="margin-left: 10px"
+            aria-label="Laporkan Bug / Saran"
+          >
+            Laporkan Bug / Saran
+          </button>
+        </div>
+        <div class="typing-indicator" id="typingIndicator" aria-live="polite">
+          <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+          </div>
+          <span>Ai sedang mengetik...</span>
+        </div>
+        <div id="quickReplies" class="quick-replies"></div>
+      </section>
+    </main>
+    <!-- Modal Riwayat Chat -->
+    <div
+      id="historyModal"
+      class="modal"
+      aria-modal="true"
+      role="dialog"
+      style="display: none"
+    >
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <h3>Riwayat Chat</h3>
+          <button
+            id="closeHistoryBtn"
+            class="btn-small btn-secondary"
+            type="button"
+          >
+            Tutup
+          </button>
+        </div>
+        <div
+          id="historyList"
+          class="history-list"
+          style="margin-top: 12px; max-height: 300px; overflow: auto"
+        ></div>
+      </div>
+    </div>
+    <!-- Modal Profil User -->
+    <div
+      id="profileModal"
+      class="modal"
+      aria-modal="true"
+      role="dialog"
+      style="display: none"
+    >
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <h3>Profil User</h3>
+          <button
+            id="closeProfileBtn"
+            class="btn-small btn-secondary"
+            type="button"
+          >
+            Tutup
+          </button>
+        </div>
+        <div
+          style="
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          "
+        >
+          <img
+            id="profileAvatar"
+            src="assets/avatar-user.png"
+            alt="Avatar"
+            style="
+              width: 48px;
+              height: 48px;
+              border-radius: 50%;
+              object-fit: cover;
+              border: 2px solid #ccc;
+            "
+          />
+          <input
+            type="file"
+            id="profileAvatarInput"
+            accept="image/*"
+            style="width: 160px"
+          />
+        </div>
+        <div style="margin-top: 14px">
+          <label for="profileName">Nama/Nickname:</label>
+          <input
+            type="text"
+            id="profileName"
+            placeholder="Nama kamu..."
+            autocomplete="off"
+          />
+        </div>
+        <div style="margin-top: 14px; text-align: right">
+          <button
+            id="profileSaveBtn"
+            class="btn-small btn-primary"
+            type="button"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal Laporan Bug/Saran -->
+    <div
+      id="reportModal"
+      class="modal"
+      aria-modal="true"
+      role="dialog"
+      style="display: none"
+    >
+      <div class="report-modal-content">
+        <h3>Laporkan Masalah / Saran</h3>
+        <textarea
+          id="reportText"
+          placeholder="Jelaskan error, bug, atau saran perbaikan..."
+        ></textarea>
+        <input type="text" id="reportEmail" placeholder="Email (opsional)" />
+        <div style="display: flex; gap: 12px; justify-content: flex-end">
+          <button
+            id="sendReportBtn"
+            class="btn-small btn-primary"
+            type="button"
+          >
+            Kirim
+          </button>
+          <button
+            id="closeReportBtn"
+            class="btn-small btn-secondary"
+            type="button"
+          >
+            Batal
+          </button>
+        </div>
+        <div id="reportStatus"></div>
+      </div>
+    </div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <noscript>
+      <div class="noscript-warning">
+        Mohon aktifkan JavaScript untuk menggunakan chatbot ini.
+      </div>
+    </noscript>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.3/dist/purify.min.js"></script>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
