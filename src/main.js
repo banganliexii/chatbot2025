@@ -14,8 +14,6 @@ const PLACEHOLDER_APIKEY = "Masukkan API key nya dulu cuy!...";
 const PLACEHOLDER_CHAT = "Ketikkan pesan Anda...";
 const AVATAR_USER = "assets/avatar-user.png";
 const AVATAR_BOT = "assets/avatar-bot.png";
-const HISTORY_KEY = "agent13_chat_history";
-const USERPROFILE_KEY = "agent13_user_profile";
 
 // ========== DOM SELECTORS & STATE ==========
 const dom = {
@@ -35,29 +33,11 @@ const dom = {
   fileInput: $("fileInput"),
   newChatBtn: $("newChatBtn"),
   clearMsgBtn: $("clearMsgBtn"),
-  reportModal: $("reportModal"),
-  reportText: $("reportText"),
-  reportEmail: $("reportEmail"),
-  reportStatus: $("reportStatus"),
-  reportBtn: $("reportBtn"),
-  sendReportBtn: $("sendReportBtn"),
-  closeReportBtn: $("closeReportBtn"),
   quickRepliesDiv: $("quickReplies"),
   canvas: $("pixelBg"),
   themeToggle: $("themeToggle"),
   toast: $("toast"),
   exportBtn: $("exportBtn"),
-  historyBtn: $("historyBtn"),
-  historyModal: $("historyModal"),
-  historyList: $("historyList"),
-  closeHistoryBtn: $("closeHistoryBtn"),
-  fontSizeBtn: $("fontSizeBtn"),
-  profileBtn: $("profileBtn"),
-  profileModal: $("profileModal"),
-  profileName: $("profileName"),
-  profileAvatar: $("profileAvatar"),
-  profileSaveBtn: $("profileSaveBtn"),
-  profileAvatarInput: $("profileAvatarInput"),
 };
 let apiKey = "";
 let isTyping = false;
@@ -65,70 +45,6 @@ let conversationHistory = [];
 let chatNumber = 1;
 let messageCount = 0;
 let attachedFiles = [];
-let userProfile = {
-  name: "Kamu",
-  avatar: AVATAR_USER,
-};
-let fontSizeLevel = 1;
-
-// ========== USER PROFILE STORAGE ==========
-function loadUserProfile() {
-  try {
-    const data = JSON.parse(localStorage.getItem(USERPROFILE_KEY));
-    if (data) userProfile = { ...userProfile, ...data };
-  } catch {}
-}
-function saveUserProfile() {
-  localStorage.setItem(USERPROFILE_KEY, JSON.stringify(userProfile));
-}
-function openProfileModal() {
-  if (!dom.profileModal) return;
-  dom.profileModal.classList.add("show");
-  dom.profileName.value = userProfile.name || "";
-  if (userProfile.avatar) dom.profileAvatar.src = userProfile.avatar;
-}
-function closeProfileModal() {
-  if (!dom.profileModal) return;
-  dom.profileModal.classList.remove("show");
-}
-if (dom.profileBtn) dom.profileBtn.addEventListener("click", openProfileModal);
-if (dom.closeProfileBtn)
-  dom.closeProfileBtn.addEventListener("click", closeProfileModal);
-if (dom.profileSaveBtn)
-  dom.profileSaveBtn.addEventListener("click", function () {
-    userProfile.name = dom.profileName.value || "Kamu";
-    if (dom.profileAvatarInput.files && dom.profileAvatarInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        userProfile.avatar = e.target.result;
-        dom.profileAvatar.src = userProfile.avatar;
-        saveUserProfile();
-        closeProfileModal();
-      };
-      reader.readAsDataURL(dom.profileAvatarInput.files[0]);
-    } else {
-      saveUserProfile();
-      closeProfileModal();
-    }
-  });
-if (dom.profileAvatarInput)
-  dom.profileAvatarInput.addEventListener("change", function () {
-    if (dom.profileAvatarInput.files && dom.profileAvatarInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        dom.profileAvatar.src = e.target.result;
-      };
-      reader.readAsDataURL(dom.profileAvatarInput.files[0]);
-    }
-  });
-loadUserProfile();
-
-function getUserAvatar() {
-  return userProfile.avatar || AVATAR_USER;
-}
-function getUserName() {
-  return userProfile.name || "Kamu";
-}
 
 // ========== MIDPROMPT INSTRUKSI AGENT-13 ==========
 const AGENT13_MIDPROMPT = `
@@ -151,7 +67,7 @@ function injectMidprompt(userMsg, instruksiMood = "") {
   return injected.trim();
 }
 
-// ========== THEME & FONT SIZE ==========
+// ========== THEME ==========
 function getTheme() {
   return localStorage.getItem("theme") || "dark";
 }
@@ -168,20 +84,6 @@ function toggleTheme() {
 }
 if (dom.themeToggle) dom.themeToggle.onclick = toggleTheme;
 setTheme(getTheme());
-
-function setFontSize(level) {
-  fontSizeLevel = level;
-  document.body.style.fontSize =
-    fontSizeLevel === 1 ? "16px" : fontSizeLevel === 2 ? "19px" : "22px";
-  localStorage.setItem("fontSizeLevel", fontSizeLevel);
-}
-function cycleFontSize() {
-  fontSizeLevel = fontSizeLevel >= 3 ? 1 : fontSizeLevel + 1;
-  setFontSize(fontSizeLevel);
-}
-if (dom.fontSizeBtn) dom.fontSizeBtn.onclick = cycleFontSize;
-fontSizeLevel = parseInt(localStorage.getItem("fontSizeLevel") || "1", 10);
-setFontSize(fontSizeLevel);
 
 // ========== UTILITIES ==========
 function autoExpand(element) {
@@ -212,69 +114,12 @@ function safeHTML(html) {
   return window.DOMPurify ? DOMPurify.sanitize(html) : html;
 }
 
-// ========== HISTORY SAVE & LOAD ==========
-function saveChatHistory() {
-  let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  history = history.slice(-20);
-  history.push({
-    time: new Date().toLocaleString(),
-    messages: conversationHistory,
-    chatNumber,
-    messageCount,
-  });
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-}
-function loadChatHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-function showHistoryModal() {
-  if (!dom.historyModal || !dom.historyList) return;
-  dom.historyModal.classList.add("show");
-  dom.historyList.innerHTML = "";
-  const history = loadChatHistory();
-  if (history.length === 0) {
-    dom.historyList.innerHTML = "<div>Belum ada riwayat chat.</div>";
-    return;
-  }
-  history
-    .slice(-20)
-    .reverse()
-    .forEach((item, idx) => {
-      const btn = document.createElement("button");
-      btn.className = "history-item";
-      btn.textContent = `#${item.chatNumber} @${item.time} [${item.messageCount} pesan]`;
-      btn.onclick = () => {
-        conversationHistory = item.messages;
-        chatNumber = item.chatNumber;
-        messageCount = item.messageCount;
-        renderChatFromHistory(conversationHistory);
-        dom.historyModal.classList.remove("show");
-      };
-      dom.historyList.appendChild(btn);
-    });
-}
-function renderChatFromHistory(messages) {
-  dom.chatMessages.innerHTML = `<div class="chat-info" id="chatInfo">Chat #${chatNumber} | ${messageCount} pesan</div>`;
-  messages.forEach((msg) => {
-    if (msg.role === "system") return;
-    addMessage(msg.content, msg.role === "user", msg.type || "normal");
-  });
-  updateChatInfo();
-}
-if (dom.historyBtn) dom.historyBtn.onclick = showHistoryModal;
-if (dom.closeHistoryBtn)
-  dom.closeHistoryBtn.onclick = () => dom.historyModal.classList.remove("show");
-
 // ========== EXPORT CHAT ==========
 function exportChat() {
   let md = `# Chat AGENT-13\nTanggal: ${new Date().toLocaleString()}\n\n`;
   conversationHistory.forEach((msg) => {
     if (msg.role === "user") {
-      md += `**${getUserName()}:** ${msg.content}\n\n`;
+      md += `**Kamu:** ${msg.content}\n\n`;
     } else if (msg.role === "assistant") {
       md += `**Bot:** ${msg.content}\n\n`;
     }
@@ -464,7 +309,6 @@ async function sendMessage() {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": window.location.origin,
         "X-Title": "Chatbot Deepseek",
       },
       body: JSON.stringify({
@@ -478,6 +322,15 @@ async function sendMessage() {
     clearTimeout(timeoutId);
 
     let data = {};
+    if (!response.ok) {
+      let errMsg = "Gagal menghubungi API.";
+      try {
+        const errData = await response.json();
+        if (errData.error && errData.error.message)
+          errMsg = errData.error.message;
+      } catch {}
+      throw new Error("API Error: " + errMsg);
+    }
     try {
       data = await response.json();
       console.log("API RAW RESPONSE:", data);
@@ -503,7 +356,6 @@ async function sendMessage() {
           "Terima kasih",
         ]);
       }, 500);
-      saveChatHistory();
     } else if (data.error && data.error.message) {
       throw new Error("API Error: " + data.error.message);
     } else {
@@ -542,7 +394,7 @@ function addMessage(content, isUser = false, type = "normal") {
 
   const avatarImg = document.createElement("img");
   avatarImg.className = "avatar";
-  avatarImg.src = isUser ? getUserAvatar() : AVATAR_BOT;
+  avatarImg.src = isUser ? AVATAR_USER : AVATAR_BOT;
   avatarImg.alt = isUser ? "Avatar User" : "Avatar Bot";
 
   const bubbleDiv = document.createElement("div");
@@ -800,7 +652,7 @@ function setApiKey(e) {
   if (e) e.preventDefault();
   const k = dom.apiKeyInput.value.trim();
   if (!k) return showToast("Masukkan API key nya dulu cuy!");
-  if (!k.startsWith("sk-or-v1-"))
+  if (!/^sk-or-v1-\w{20,}$/.test(k))
     return showToast(
       'Format API key tidak valid. Harus dimulai dengan "sk-or-v1-"'
     );
@@ -857,7 +709,7 @@ function updateApiKeyUI(hasKey) {
   }
 }
 
-// ========== CHAT, FILE, REPORT ==========
+// ========== CHAT & FILE ==========
 function startNewChat() {
   if (!apiKey) return showToast(PLACEHOLDER_APIKEY);
   if (
@@ -894,54 +746,9 @@ function clearAllMessages() {
   dom.userInput.focus();
 }
 
-// ========== REPORT ==========
-function openReportDialog() {
-  if (
-    !dom.reportModal ||
-    !dom.reportText ||
-    !dom.reportEmail ||
-    !dom.reportStatus
-  )
-    return;
-  dom.reportModal.classList.add("show");
-  dom.reportModal.setAttribute("aria-modal", "true");
-  dom.reportText.value = "";
-  dom.reportEmail.value = "";
-  dom.reportStatus.textContent = "";
-}
-function closeReportDialog() {
-  if (!dom.reportModal) return;
-  dom.reportModal.classList.remove("show");
-  dom.reportModal.setAttribute("aria-modal", "false");
-}
-async function sendReport() {
-  if (!dom.reportText || !dom.reportEmail || !dom.reportStatus) return;
-  const text = dom.reportText.value.trim(),
-    email = dom.reportEmail.value.trim();
-  if (!text) {
-    dom.reportStatus.textContent = "Isi pesan dulu ya!";
-    return;
-  }
-  dom.reportStatus.textContent = "Mengirim...";
-  try {
-    await fetch(
-      `https://api.telegram.org/bot7488556619:AAHSaOg_zLIts0q_hutvAD_HGFXtvcXAcE0/sendMessage?chat_id=7402242831&text=${encodeURIComponent(
-        `🔧 [AGENT-13 FEEDBACK]\nPesan: ${text}\nEmail: ${
-          email || "-"
-        }\nWaktu: ${new Date().toLocaleString()}`
-      )}`
-    );
-    dom.reportStatus.textContent = "Makasih ya, laporan sudah dikirim!";
-    setTimeout(closeReportDialog, 2000);
-  } catch {
-    dom.reportStatus.textContent = "Gagal dikirim. Coba lagi nanti!";
-  }
-}
-
 // ========== EVENTS ==========
 document.addEventListener("DOMContentLoaded", () => {
   checkSavedApiKey();
-  loadUserProfile();
   if (dom.userInput) dom.userInput.focus();
   updateChatInfo();
 });
@@ -970,14 +777,6 @@ if (dom.fileInput) dom.fileInput.addEventListener("change", handleFileUpload);
 if (dom.newChatBtn) dom.newChatBtn.addEventListener("click", startNewChat);
 if (dom.clearMsgBtn)
   dom.clearMsgBtn.addEventListener("click", clearAllMessages);
-if (dom.reportBtn) dom.reportBtn.addEventListener("click", openReportDialog);
-if (dom.sendReportBtn) dom.sendReportBtn.addEventListener("click", sendReport);
-if (dom.closeReportBtn)
-  dom.closeReportBtn.addEventListener("click", closeReportDialog);
-if (dom.reportModal)
-  dom.reportModal.addEventListener("click", (e) => {
-    if (e.target === dom.reportModal) closeReportDialog();
-  });
 
 document.addEventListener("keydown", function (e) {
   if ((e.ctrlKey || e.metaKey) && e.key === "l") {
@@ -988,17 +787,9 @@ document.addEventListener("keydown", function (e) {
     e.preventDefault();
     clearAllMessages();
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === "=") {
-    e.preventDefault();
-    cycleFontSize();
-  }
   if ((e.ctrlKey || e.metaKey) && e.key === "e") {
     e.preventDefault();
     exportChat();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === "h") {
-    e.preventDefault();
-    showHistoryModal();
   }
 });
 setTimeout(() => {
@@ -1124,6 +915,7 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   if (dom.sendBtn) dom.sendBtn.parentNode.insertBefore(recBtn, dom.sendBtn);
 }
 
+// ========== ARIA LABELS & AKSESIBILITAS ==========
 (function () {
   if (dom.sendBtn) dom.sendBtn.setAttribute("aria-label", "Kirim pesan");
   if (dom.attachBtn) dom.attachBtn.setAttribute("aria-label", "Lampirkan file");
@@ -1133,8 +925,4 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   if (dom.themeToggle)
     dom.themeToggle.setAttribute("aria-label", "Toggle tema");
   if (dom.exportBtn) dom.exportBtn.setAttribute("aria-label", "Export chat");
-  if (dom.historyBtn) dom.historyBtn.setAttribute("aria-label", "Riwayat chat");
-  if (dom.fontSizeBtn)
-    dom.fontSizeBtn.setAttribute("aria-label", "Ubah ukuran font");
-  if (dom.profileBtn) dom.profileBtn.setAttribute("aria-label", "Profil user");
 })();

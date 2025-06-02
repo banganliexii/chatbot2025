@@ -1,6 +1,5 @@
-/* PIXEL-RETRO MODERN CHATBOT STYLES */
-
-/* 1. Font & Color Variables */
+/* AGENT-13 CLEAN PIXEL-RETRO MODERN CHATBOT STYLES */
+/* Gabungan styles.css dan chatbot.css, urut tanpa double, sudah bersih dari fitur riwayat/profil/font-size/report */
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 :root {
@@ -30,6 +29,7 @@
   --pixel-modal-bg: #242a2c;
   --pixel-modal-border: #ffbe3b;
   --pixel-modal-shadow: #f85b8a88;
+  --focus-outline: 3px solid #ffe066;
 }
 body.dark {
   --bg: #181818;
@@ -87,9 +87,9 @@ body.light {
   --pixel-modal-border: #e3c000;
   --pixel-modal-shadow: #f85b8a44;
 }
-
-/* 2. Reset & Base */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -122,8 +122,103 @@ body::after {
     background-position: 420px 420px;
   }
 }
-
-/* 3. Pixel Canvas */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: 2px;
+}
+::-webkit-scrollbar {
+  width: 12px;
+  background: var(--pixel-header);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--pixel-scroll);
+  border: 2px solid var(--pixel-header-border);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pixel-accent);
+}
+::-webkit-scrollbar-corner {
+  background: var(--pixel-header);
+}
+html {
+  scrollbar-color: var(--pixel-scroll) var(--pixel-header);
+  scrollbar-width: thin;
+}
+.spinner {
+  border: 2px solid #fff;
+  border-top: 2px solid #444;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+#apiKeyInput.invalid {
+  background: #fff0f0;
+  color: #d10000;
+  border-color: #d10000 !important;
+  box-shadow: 0 0 0 2px #f85b8a, 0 0 3px #d10000 !important;
+  animation: shake-key 0.16s 2;
+}
+@keyframes shake-key {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.toast {
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  min-width: 220px;
+  max-width: 90vw;
+  padding: 13px 20px;
+  background: var(--pixel-accent);
+  color: #fff;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s;
+  border: 2px solid #c31d5b;
+  font-weight: bold;
+}
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.file-preview.error {
+  color: #c31d5b;
+  font-weight: bold;
+  animation: shake-key 0.13s 2;
+}
 #pixelBg {
   position: fixed;
   inset: 0;
@@ -136,8 +231,6 @@ body::after {
   opacity: 0.18;
   background: transparent !important;
 }
-
-/* 4. Chat Container */
 .chat-container {
   z-index: 10;
   position: relative;
@@ -168,8 +261,6 @@ body::after {
     height: 650px;
   }
 }
-
-/* 5. Chat Header */
 .chat-header {
   background: var(--pixel-header);
   border-bottom: 6px solid var(--pixel-header-border);
@@ -191,6 +282,7 @@ body::after {
   display: inline-block;
   margin-bottom: 4px;
   filter: brightness(1.2);
+  font-weight: bold;
 }
 @keyframes pixel-glitch-anim {
   0%,
@@ -301,8 +393,6 @@ body::after {
   padding: 7px 10px 6px;
   z-index: 10;
 }
-
-/* 6. Welcome/Info/Modal/Toast */
 .welcome-message {
   text-align: center;
   color: var(--pixel-primary);
@@ -321,32 +411,6 @@ body::after {
   font-size: 1rem;
   padding: 20px;
 }
-.toast {
-  position: fixed;
-  z-index: 9999;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  min-width: 220px;
-  max-width: 90vw;
-  padding: 13px 20px;
-  background: var(--pixel-accent);
-  color: #fff;
-  border-radius: 7px;
-  font-family: inherit;
-  font-size: 1rem;
-  text-align: center;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s;
-}
-.toast.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* 7. Chat Messages Area */
 .chat-messages {
   height: 420px;
   overflow-y: auto;
@@ -402,8 +466,6 @@ body::after {
   box-shadow: 0 1px 0 #222;
   flex-shrink: 0;
 }
-
-/* 8. Bubble, Emoji Reaction, Quick Reply, Typing, Bubble Animations */
 .user-message .message-content,
 .bot-message .message-content {
   border-radius: 0;
@@ -411,13 +473,12 @@ body::after {
   background: var(--pixel-header);
   padding: 12px 10px 12px 17px;
   margin: 0 0 0 32px;
-  max-width: 99%;
+  max-width: 600px;
   font-size: 1rem;
   box-shadow: 0 4px 0 var(--pixel-shadow);
   word-break: break-word;
   image-rendering: pixelated;
   transition: box-shadow 0.18s;
-  max-width: 600px;
 }
 .user-message .message-content {
   color: var(--pixel-light);
@@ -455,17 +516,16 @@ body::after {
   display: block;
   margin: 8px 0 7px;
   font-size: 0.91em;
-  overflow-x: auto;
   background: var(--pixel-dark);
 }
 .katex {
   font-size: 1em;
 }
 .message-time {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   color: var(--pixel-secondary);
   margin-top: 3px;
-  opacity: 0.75;
+  opacity: 0.85;
   align-self: flex-end;
   text-shadow: 1px 1px var(--pixel-shadow);
 }
@@ -479,9 +539,9 @@ body::after {
   padding: 12px 0;
 }
 .error-message .message-content {
-  background: #ffbdbd;
-  color: #ad2222;
-  border: 2.5px solid #ad2222;
+  background: #fff0f0;
+  color: #a80000;
+  border: 2.5px solid #a80000;
   text-align: left;
   font-style: italic;
   box-shadow: 0 1px 0 #c31d5b;
@@ -557,8 +617,6 @@ pre[class*="language-"] {
   overflow-x: auto;
   max-width: 100%;
 }
-
-/* 9. Input Area */
 .chat-input-container {
   padding: 19px 17px 21px;
   background: var(--pixel-header);
@@ -814,218 +872,6 @@ pre[class*="language-"] {
   clip: rect(1px, 1px, 1px, 1px);
   white-space: nowrap;
 }
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2.5px solid var(--pixel-accent);
-  outline-offset: 2px;
-}
-
-/* 10. Modal Laporan */
-#reportModal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #141414ee;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s;
-}
-#reportModal.show {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
-}
-#reportModal .report-modal-content {
-  background: var(--pixel-modal-bg);
-  padding: 30px 16px;
-  max-width: 400px;
-  margin: 10vh auto;
-  box-shadow: 0 4px 28px var(--pixel-modal-shadow);
-  border: 4px solid var(--pixel-modal-border);
-  font-family: "Press Start 2P", monospace;
-}
-#reportModal h3 {
-  color: var(--pixel-secondary);
-  margin-bottom: 11px;
-  font-size: 1rem;
-}
-#reportText {
-  width: 100%;
-  min-height: 68px;
-  margin: 11px 0 8px 0;
-  padding: 7px;
-  font-size: 0.81rem;
-  border: 2.5px solid var(--pixel-accent);
-  background: var(--pixel-dark);
-  color: var(--pixel-light);
-}
-#reportEmail {
-  width: 100%;
-  margin-bottom: 11px;
-  padding: 7px;
-  border: 2px solid var(--pixel-primary);
-  background: var(--pixel-header);
-  color: var(--pixel-primary);
-}
-#reportModal .btn-small {
-  padding: 8px 17px;
-  font-size: 0.88rem;
-  box-shadow: 0 2px 0 var(--pixel-modal-shadow);
-}
-#reportModal .btn-primary {
-  background: var(--pixel-primary);
-  color: #232323;
-  border: 3px solid var(--pixel-green);
-}
-#reportModal .btn-secondary {
-  background: var(--pixel-accent);
-  color: #fff;
-  border: 3px solid var(--pixel-secondary);
-}
-#reportModal .btn-primary:hover {
-  background: var(--pixel-btn-hover);
-  color: #232323;
-  border: 3px solid var(--pixel-accent);
-}
-#reportModal .btn-secondary:hover {
-  background: var(--pixel-secondary);
-  color: #232323;
-  border: 3px solid var(--pixel-accent);
-}
-#reportStatus {
-  color: var(--pixel-green);
-  margin-top: 7px;
-  font-size: 0.7rem;
-}
-.spinner {
-  border: 2px solid #fff;
-  border-top: 2px solid #444;
-  border-radius: 50%;
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  animation: spin 1s linear infinite;
-  vertical-align: middle;
-  margin-left: 2px;
-}
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* ========== TAMBAHAN UNTUK FITUR BARU (Modal, History, Profil, Voice, Progress) ========== */
-
-/* Modal Generic Style (untuk historyModal, profileModal, dsb) */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 10000;
-}
-.modal.show {
-  display: block;
-}
-.modal-content {
-  background: var(--pixel-modal-bg, #fff);
-  color: var(--pixel-light, #222);
-  border-radius: 8px;
-  margin: 8vh auto;
-  padding: 24px;
-  max-width: 350px;
-  box-shadow: 0 6px 24px var(--pixel-modal-shadow, #0002);
-  position: relative;
-  border: 4px solid var(--pixel-modal-border, #ffbe3b);
-}
-.history-list {
-  max-height: 300px;
-  overflow: auto;
-}
-.history-item {
-  width: 100%;
-  text-align: left;
-  background: #eee;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 4px;
-  margin-bottom: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-family: inherit;
-  font-size: 0.92em;
-}
-.history-item:hover {
-  background: #d0e9ff;
-}
-
-/* Profil User Modal */
-#profileAvatar {
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-}
-#profileModal input[type="text"] {
-  width: 90%;
-  padding: 9px;
-  font-size: 0.93em;
-  border: 2px solid var(--pixel-primary);
-  border-radius: 3px;
-  margin-top: 5px;
-  background: var(--pixel-header);
-  color: var(--pixel-primary);
-  font-family: inherit;
-}
-
-/* File upload progress bar (optional, overlay style) */
-#fileUploadProgress {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #222;
-  color: #fff;
-  padding: 16px 32px;
-  border-radius: 6px;
-  z-index: 9999;
-  font-size: 20px;
-  font-family: inherit;
-}
-
-/* Voice input button (🎤) style */
-.voice-input-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.25em;
-  margin-left: 8px;
-  cursor: pointer;
-  color: var(--pixel-green);
-  transition: color 0.13s;
-  vertical-align: middle;
-}
-.voice-input-btn:hover {
-  color: var(--pixel-accent);
-}
-
-/* Responsive modal */
-@media (max-width: 500px) {
-  .modal-content {
-    max-width: 97vw;
-    padding: 12px;
-  }
-}
-
-/* 11. Responsive Mobile */
 @media (max-width: 820px) {
   .chat-container {
     max-width: 99vw;
