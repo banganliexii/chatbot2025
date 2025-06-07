@@ -794,7 +794,11 @@ document.addEventListener("keydown", function (e) {
 });
 setTimeout(() => {
   if (!apiKey)
-    addMessage("ℹ️ PAKAI API KEY DARI DEEPSEEK R1-FREE BRO!", false, "system");
+    addMessage(
+      "ℹ️ API KEY DARI DEEPSEEK R1-FREE BRO. JANGAN LUPA MODE DESKTOP!",
+      false,
+      "system"
+    );
 }, 2000);
 
 if (dom.canvas) {
